@@ -1403,6 +1403,8 @@ if (window.lastBulbClick === undefined) { window.lastBulbClick = false; }
 function drawApersepsiModal() {
   push();
   
+  let vm = getVirtualMouse();
+  
   // Data Tab Menu Utama
   let tabs = [
     "🔗 Jembatan Konsep", 
@@ -1410,7 +1412,7 @@ function drawApersepsiModal() {
     "🎯 Target & Urgensi"   
   ];
   
-  // --- 1. Overlay Latar Belakang (Gelap Transparan) ---
+  // --- 1. Overlay Latar Belakang ---
   fill(15, 23, 42, 225);
   noStroke();
   rect(0, 0, VIRTUAL_W, VIRTUAL_H);
@@ -1432,10 +1434,10 @@ function drawApersepsiModal() {
   textAlign(LEFT, CENTER);
   text("💡 JENDELA APERSEPSI: SEBELUM KITA MEMULAI LAB", 140, 90);
 
-  // --- 4. Tombol Close (✕) Interaktif ---
+  // --- 4. Tombol Close (✕) ---
   let closeX = VIRTUAL_W - 140;
   let closeY = 90;
-  let isHoverClose = dist(mouseX, mouseY, closeX, closeY) < 17;
+  let isHoverClose = dist(vm.x, vm.y, closeX, closeY) < 20;
   
   if (isHoverClose) {
     fill(225, 29, 72);
@@ -1450,10 +1452,6 @@ function drawApersepsiModal() {
   textAlign(CENTER, CENTER);
   text("✕", closeX, closeY);
 
-  if (mouseIsPressed && !window.lastMousePressedInApersepsi && isHoverClose) {
-    if (typeof showApersepsi !== 'undefined') { showApersepsi = false; }
-  }
-
   // --- 5. Sidebar Menu Tab Kiri ---
   let sidebarW = 200;
   let startTabY = 150;
@@ -1462,7 +1460,7 @@ function drawApersepsiModal() {
 
   for (let i = 0; i < tabs.length; i++) {
     let tabY = startTabY + (i * (tabH + gap));
-    let isHoverTab = mouseX > 130 && mouseX < 130 + sidebarW && mouseY > tabY && mouseY < tabY + tabH;
+    let isHoverTab = vm.x >= 130 && vm.x <= 130 + sidebarW && vm.y >= tabY && vm.y <= tabY + tabH;
     
     if (window.activeApersepsiTab === i) {
       fill(245, 158, 11); 
@@ -1487,10 +1485,6 @@ function drawApersepsiModal() {
     textStyle(window.activeApersepsiTab === i ? BOLD : NORMAL);
     textAlign(LEFT, CENTER);
     text("  " + tabs[i], 135, tabY + tabH / 2);
-
-    if (mouseIsPressed && !window.lastMousePressedInApersepsi && isHoverTab) {
-      window.activeApersepsiTab = i;
-    }
   }
 
   // --- 6. Area Konten Dinamis Kanan ---
@@ -1503,9 +1497,7 @@ function drawApersepsiModal() {
   fill(15, 23, 42);
   textAlign(LEFT, TOP);
 
-  // ==========================================
-  // TAB 1: PENGAITAN KONSEP & DUNIA NYATA
-  // ==========================================
+  // TAB 1
   if (window.activeApersepsiTab === 0) {
     textSize(18); textStyle(BOLD); fill(180, 83, 9);
     text("🔗 Mengaitkan Konsep & Dunia Nyata", textX, contentY);
@@ -1517,7 +1509,6 @@ function drawApersepsiModal() {
       "Mengapa kabel charger HP yang bagus itu tebal? Menurut rumus R = ρ·L/A, luas penampang (A) yang besar membuat hambatan (R) menjadi kecil. Hambatan kecil membuat arus listrik mengalir deras sehingga baterai HP lebih cepat penuh!";
     text(txt1, textX, contentY + 20, textW);
 
-    // --- ILUSTRASI TAB 1 ---
     push();
     stroke(100); strokeWeight(2); fill(240);
     rect(imgX, contentY + 60, imgW, 40, 5); 
@@ -1529,7 +1520,6 @@ function drawApersepsiModal() {
     ellipse(imgX + window.chargeX, contentY + 70, 8, 8);
     ellipse(imgX + ((window.chargeX + imgW/3) % imgW), contentY + 80, 8, 8);
     ellipse(imgX + ((window.chargeX + 2*imgW/3) % imgW), contentY + 90, 8, 8);
-    
     ellipse(imgX + (window.chargeX * 0.6) % imgW, contentY + 147.5, 6, 6);
     
     fill(71, 85, 105); textSize(11); textStyle(BOLD);
@@ -1537,10 +1527,7 @@ function drawApersepsiModal() {
     text("Kabel Tipis (A Kecil = Hambatan Besar = Arus Terhambat)", imgX, contentY + 120);
     pop();
   } 
-  
-  // ==========================================
-  // TAB 2: PEMANCING PERHATIAN / STIMULUS (HOTS)
-  // ==========================================
+  // TAB 2
   else if (window.activeApersepsiTab === 1) {
     textSize(18); textStyle(BOLD); fill(180, 83, 9);
     text("🔥 Teka-Teki & Stimulus Berpikir", textX, contentY);
@@ -1552,7 +1539,6 @@ function drawApersepsiModal() {
       "👇 KLIK SAKELAR pada ilustrasi kanan untuk memutus jalur rangkaian Seri dan lihat dampaknya secara langsung!";
     text(txt2, textX, contentY + 20, textW);
 
-    // --- ILUSTRASI TAB 2 ---
     push();
     let circuitY = contentY + 70;
     
@@ -1563,14 +1549,7 @@ function drawApersepsiModal() {
     line(imgX + 35, circuitY + 10, imgX + 60, circuitY + 10);
     
     let swX = imgX + 60; let swY = circuitY + 10;
-    let isHoverSwitch = mouseX > swX - 10 && mouseX < swX + 30 && mouseY > swY - 20 && mouseY < swY + 20;
     
-    if (mouseIsPressed && !window.lastBulbClick && isHoverSwitch) {
-      window.bulbState = !window.bulbState; 
-      window.lastBulbClick = true;
-    }
-    if (!mouseIsPressed) { window.lastBulbClick = false; }
-
     if (window.bulbState) {
       line(swX, swY, swX + 20, swY); 
     } else {
@@ -1610,10 +1589,7 @@ function drawApersepsiModal() {
     text(window.bulbState ? "[ Klik Sakelar untuk Memutus ]" : "[ Klik Sakelar untuk Menyambung ]", imgX, circuitY - 25);
     pop();
   } 
-  
-  // ==========================================
-  // TAB 3: PENYAMPAIAN MANFAAT & TUJUAN
-  // ==========================================
+  // TAB 3
   else if (window.activeApersepsiTab === 2) {
     textSize(18); textStyle(BOLD); fill(180, 83, 9);
     text("🎯 Mengapa Ini Penting Bagi Kita?", textX, contentY);
@@ -1627,7 +1603,6 @@ function drawApersepsiModal() {
       "• Membuktikan Hukum Kirchhoff secara valid.";
     text(txt3, textX, contentY + 20, textW);
 
-    // --- ILUSTRASI TAB 3 ---
     push();
     let chartBaseY = contentY + 160;
     
@@ -1653,11 +1628,12 @@ function drawApersepsiModal() {
     pop();
   }
 
-  // Menyimpan status klik untuk validasi debounce klik frame berikutnya
-  window.lastMousePressedInApersepsi = mouseIsPressed;
   pop();
 }
 
+  // Menyimpan status klik untuk validasi debounce klik frame berikutnya
+  window.lastMousePressedInApersepsi = mouseIsPressed;
+  pop();
 function drawRefleksiModal() {
   push();
   fill(15, 23, 42, 200); rect(0, 0, VIRTUAL_W, VIRTUAL_H);
@@ -1713,7 +1689,39 @@ function mousePressed() {
         activeModal = null;
         return;
       }
+// =========================================================
+      // SISIPKAN PERBAIKAN 2 DI SINI (LOGIKA KLIK TAB APERSEPSI)
+      // =========================================================
+      if (activeModal === 'APERSEPSI') {
+        let sidebarW = 200;
+        let startTabY = 150;
+        let tabH = 50;
+        let gap = 12;
 
+        // 1. Klik perpindahan tab
+        for (let i = 0; i < 3; i++) {
+          let tabY = startTabY + (i * (tabH + gap));
+          if (vm.x >= 130 && vm.x <= 130 + sidebarW && vm.y >= tabY && vm.y <= tabY + tabH) {
+            window.activeApersepsiTab = i;
+            return;
+          }
+        }
+
+        // 2. Klik sakelar di Tab 2
+        if (window.activeApersepsiTab === 1) {
+          let contentY = 155;
+          let textX = 130 + sidebarW + 30;
+          let textW = (VIRTUAL_W - textX - 140) * 0.55; 
+          let imgX = textX + textW + 30;
+          let swX = imgX + 60; 
+          let swY = contentY + 70 + 10;
+          
+          if (vm.x > swX - 15 && vm.x < swX + 35 && vm.y > swY - 20 && vm.y < swY + 20) {
+            window.bulbState = !window.bulbState;
+            return;
+          }
+        }
+      }
       if (activeModal === 'KUIS') {
         let tabW = 160, startX = 90;
         [0, 1, 2, 3, 4].forEach(q => {
